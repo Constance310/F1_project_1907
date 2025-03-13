@@ -33,10 +33,15 @@ def kaggle_to_df():
     # Merging lap_times with pit datasets
     df = pd.merge(lap_times_df2, pit_df, how="left", on=["raceId", "driverId", "lap"])
 
+    # Removing data prior to 2010
     df["date"] = pd.to_datetime(df["date"])
-    df = df[df["date"].dt.year >= 2010]
+    df2 = df[df["date"].dt.year >= 2010]
 
-    return df
+    # Sort the values
+    df3 = df2.sort_values(by=["raceId", "lap", "cumul_time"]).copy()
+    df3 = df3.reset_index(drop=True)
+
+    return df3
 
 
 def identify_rivals(df):
@@ -45,6 +50,7 @@ def identify_rivals(df):
     A 'rival' is defined as any driver within 5 seconds ahead of the current driver on the same lap.
     Rivalry detection starts only from lap 10.
     """
+
     # Initialize an empty list column to store rivals
     df["rivals"] = [[] for _ in range(len(df))]
 
