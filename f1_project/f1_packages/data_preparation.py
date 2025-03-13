@@ -33,6 +33,7 @@ def kaggle_to_df():
     # Merging lap_times with pit datasets
     df = pd.merge(lap_times_df2, pit_df, how="left", on=["raceId", "driverId", "lap"])
 
+
     # Removing data prior to 2010
     df["date"] = pd.to_datetime(df["date"])
     df2 = df[df["date"].dt.year >= 2010]
@@ -42,6 +43,7 @@ def kaggle_to_df():
     df3 = df3.reset_index(drop=True)
 
     return df3
+
 
 
 def identify_rivals(df):
@@ -123,7 +125,6 @@ def def_undercut_tentative(df):
     return df  # Retourner le DataFrame modifié
 
 import pandas as pd
-import ast
 
 def def_undercut_success(df):
     # Créer des dictionnaires pour récupérer rapidement les informations nécessaires
