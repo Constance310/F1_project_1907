@@ -2,6 +2,7 @@ import kagglehub
 import pandas as pd
 import numpy as np
 import os
+import ast
 
 
 def kaggle_to_df():
@@ -13,22 +14,23 @@ def kaggle_to_df():
     lap_times_df = pd.read_csv(os.path.join(root_dir,"raw_data", "kaggle", "lap_times.csv"))
     races_df = pd.read_csv(os.path.join(root_dir,"raw_data", "kaggle", "races.csv"))
 
-    # Rearanging pit dataset
+    # Rearanging pit dataset and renaming
     pit_df = pit_df[["raceId", "driverId", "stop", "lap", "time", "milliseconds"]].copy()
-    pit_df.rename(columns={"stop": "#_cumul_stop"}, inplace=True)
+    pit_df.rename(columns={"stop": "cumul_stop"}, inplace=True)
     pit_df.rename(columns={"milliseconds": "pit_duration"}, inplace=True)
 
     # Rearanging races dataset
     races_df = races_df[["raceId", "name", "date"]]
 
-    # Rearanging lap times dataset
+    # Rearanging lap times dataset and renaming
     lap_times_df = lap_times_df[["raceId", "driverId", "lap", "position", "milliseconds"]]
+    lap_times_df.rename(columns={"milliseconds": "lap_time"}, inplace=True)
 
     # Merging lap_times with races to get the dates and name of each race
     lap_times_df2 = pd.merge(lap_times_df, races_df, on="raceId")
 
     # Creating a cumul time column to have the commulative time of each pilot after each lap
-    lap_times_df2["cumul_time"] = lap_times_df2.groupby(["raceId", "driverId"])["milliseconds"].cumsum()
+    lap_times_df2["cumul_time"] = lap_times_df2.groupby(["raceId", "driverId"])["lap_time"].cumsum()
 
     # Merging lap_times with pit datasets
     df = pd.merge(lap_times_df2, pit_df, how="left", on=["raceId", "driverId", "lap"])
@@ -44,6 +46,24 @@ def kaggle_to_df():
 
     return df3
 
+
+def change_driveId(df):
+    """Changing the driver IDs to scale the data properly"""
+
+    # Sorting all the driverIds
+    sorted_driver_ids = sorted(df["driverId"].unique())
+    # Creating an array of all the gaps in the dataset (a gap is calculated when there is a difference > 1 between 2 values)
+    gaps = np.diff(sorted_driver_ids)
+    # Getting the index of the largest gap of the array
+    max_gap_index = np.argmax(gaps)
+    # Finding where the gap starts
+    gap_start = sorted_driver_ids[max_gap_index]
+    # Finding the "real" size of the gap
+    largest_gap_size = gaps[max_gap_index] - 1
+    # Filling the biggest gap by shifting the largest driverId values backward
+    df.loc[df["driverId"] > gap_start, "driverId"] -= largest_gap_size
+
+    return df
 
 
 def identify_rivals(df):
@@ -82,6 +102,7 @@ def identify_rivals(df):
 
     df['rivals'] = df['rivals'].apply(lambda x: eval(x) if isinstance(x, str) and x.startswith('[') else x)
     return df
+
 
 def def_undercut_tentative(df):
     # Créer un dictionnaire des pit stops (raceId, driverId, lap) → pit_duration
@@ -124,7 +145,6 @@ def def_undercut_tentative(df):
 
     return df  # Retourner le DataFrame modifié
 
-import pandas as pd
 
 def def_undercut_success(df):
     # Créer des dictionnaires pour récupérer rapidement les informations nécessaires
@@ -177,9 +197,38 @@ def def_undercut_success(df):
     return df  # Retourner le DataFrame modifié
 
 
+def baseline_small_dataset(df):
+    # For our baseline model we keep the 1,500 rows in which there is an undercut tentative
+    df = df[df["undercut_tentative"] == True]
+    return df
+
+
+def baseline_data_prep():
+    df = kaggle_to_df()
+    df = change_driveId(df)
+    df = identify_rivals(df)
+    df = def_undercut_tentative(df)
+    df = def_undercut_success(df)
+    df = baseline_small_dataset(df)
+    return df
+
+
+def normal_data_prep():
+    df = kaggle_to_df()
+    df = change_driveId(df)
+    df = identify_rivals(df)
+    df = def_undercut_tentative(df)
+    df= def_undercut_success(df)
+    # TO BE MODIFIED
+    return df
+
 
 if __name__ == '__main__':
     kaggle_to_df()
+    change_driveId()
     identify_rivals()
     def_undercut_tentative()
     def_undercut_success()
+    baseline_small_dataset()
+    baseline_data_prep()
+    normal_data_prep()
