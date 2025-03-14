@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 import ast
+from sklearn.preprocessing import LabelEncoder
 
 
 def get_data():
@@ -185,6 +186,17 @@ def def_undercut_success(df):
 
     return df  # Retourner le DataFrame modifié
 
+def y_encoding(df):
+    # Convert to boolean first to handle both strings and actual booleans
+    df['undercut_success_binary'] = df['undercut_success'].astype(str).map({'True': 1, 'False': 0})
+
+    # Drop original column
+    df.drop(columns="undercut_success", inplace=True)
+
+    # Rename the binary column back to original name
+    df.rename(columns={'undercut_success_binary': 'undercut_success'}, inplace=True)
+
+    return df
 
 def baseline_small_dataset(df):
     # For our baseline model we keep the 1,500 rows in which there is an undercut tentative
@@ -242,3 +254,4 @@ if __name__ == '__main__':
     baseline_data_prep()
     normal_data_prep()
     driver_dictionary()
+    y_encoding()
