@@ -10,4 +10,4 @@ df = baseline_data_prep()
 
 df_baseline = baseline_cleaning(df)
 
-df_baseline.to_csv("raw_data/df_baseline2.csv")
+df_baseline.to_csv("df_baseline2.csv")

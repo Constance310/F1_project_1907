@@ -10,9 +10,9 @@ def kaggle_to_df():
 
     # Downloading datasets
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    pit_df = pd.read_csv(os.path.join(root_dir,"raw_data","kaggle", "pit_stops.csv"))
-    lap_times_df = pd.read_csv(os.path.join(root_dir,"raw_data", "kaggle", "lap_times.csv"))
-    races_df = pd.read_csv(os.path.join(root_dir,"raw_data", "kaggle", "races.csv"))
+    pit_df = pd.read_csv(os.path.join(root_dir,"data","raw_data", "pit_stops.csv"))
+    lap_times_df = pd.read_csv(os.path.join(root_dir,"data", "raw_data", "lap_times.csv"))
+    races_df = pd.read_csv(os.path.join(root_dir,"data", "raw_data", "races.csv"))
 
     # Rearanging pit dataset and renaming
     pit_df = pit_df[["raceId", "driverId", "stop", "lap", "time", "milliseconds"]].copy()
