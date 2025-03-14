@@ -4,14 +4,14 @@ import numpy as np
 import os
 
 
-def baseline_remove_columns(df):
+def light_remove_columns(df):
     """Removing the date and time columns for our baseline model"""
 
     df = df.drop(columns=["raceId", "date", "time"])
     return df
 
 
-def baseline_remove_outliers(df):
+def remove_outliers(df):
     """Removing outliers in the data"""
 
     # Removing the laps with a time greater that 180,000 ms
@@ -38,14 +38,17 @@ def rename_GP(df):
     df['name'] = df['name'].replace({'70th Anniversary Grand Prix': 'British Grand Prix', 'Mexican Grand Prix': 'Mexico City Grand Prix'})
     return df
 
-def baseline_cleaning(df):
-    df = baseline_remove_columns(df)
-    df = baseline_remove_outliers(df)
+
+def light_cleaning(df):
+    df = light_remove_columns(df)
+    df = remove_outliers(df)
     df = fill_na(df)
     df = rename_GP(df)
     return df
 
+
 def normal_cleaning(df):
+    df = remove_outliers(df)
     df = fill_na(df)
     df = rename_GP(df)
     # ADD OTHER FUNCTIONS
@@ -53,9 +56,9 @@ def normal_cleaning(df):
 
 
 if __name__ == '__main__':
-    baseline_remove_columns()
-    baseline_remove_outliers()
+    light_remove_columns()
+    remove_outliers()
     fill_na()
     rename_GP()
-    baseline_cleaning()
+    light_cleaning()
     normal_cleaning()
