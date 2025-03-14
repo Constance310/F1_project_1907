@@ -5,14 +5,14 @@ import os
 import ast
 
 
-def kaggle_to_df():
+def get_data():
     """Getting the data from kaggle and turning it to dataframe with interesting columns"""
 
     # Downloading datasets
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    pit_df = pd.read_csv(os.path.join(root_dir,"raw_data","kaggle", "pit_stops.csv"))
-    lap_times_df = pd.read_csv(os.path.join(root_dir,"raw_data", "kaggle", "lap_times.csv"))
-    races_df = pd.read_csv(os.path.join(root_dir,"raw_data", "kaggle", "races.csv"))
+    pit_df = pd.read_csv(os.path.join(root_dir,"data","raw_data", "pit_stops.csv"))
+    lap_times_df = pd.read_csv(os.path.join(root_dir,"data", "raw_data", "lap_times.csv"))
+    races_df = pd.read_csv(os.path.join(root_dir,"data", "raw_data", "races.csv"))
 
     # Rearanging pit dataset and renaming
     pit_df = pit_df[["raceId", "driverId", "stop", "lap", "time", "milliseconds"]].copy()
@@ -47,21 +47,11 @@ def kaggle_to_df():
     return df3
 
 
-def change_driveId(df):
-    """Changing the driver IDs to scale the data properly"""
+def change_driver_ids(df, dict_drivers):
+    """Change the driverIds in the DataFrame to the new sequential IDs."""
 
-    # Sorting all the driverIds
-    sorted_driver_ids = sorted(df["driverId"].unique())
-    # Creating an array of all the gaps in the dataset (a gap is calculated when there is a difference > 1 between 2 values)
-    gaps = np.diff(sorted_driver_ids)
-    # Getting the index of the largest gap of the array
-    max_gap_index = np.argmax(gaps)
-    # Finding where the gap starts
-    gap_start = sorted_driver_ids[max_gap_index]
-    # Finding the "real" size of the gap
-    largest_gap_size = gaps[max_gap_index] - 1
-    # Filling the biggest gap by shifting the largest driverId values backward
-    df.loc[df["driverId"] > gap_start, "driverId"] -= largest_gap_size
+    # Replace original driverIds with the new ones
+    df['driverId'] = df['driverId'].map(lambda x: dict_drivers[x][0] if x in dict_drivers else x)
 
     return df
 
@@ -98,9 +88,8 @@ def identify_rivals(df):
                     # Check if the previous driver is ahead and within the 5 seconds range
                     time_diff = current_driver["cumul_time"] - previous_driver["cumul_time"]
                     if 0 < time_diff <= 5000:  # Within 5 seconds
-                        df.loc[current_driver.name, "rivals"].append(int(previous_driver["driverId"]))
+                        df.at[current_driver.name, "rivals"] = df.at[current_driver.name, "rivals"] + [int(previous_driver["driverId"])]
 
-    df['rivals'] = df['rivals'].apply(lambda x: eval(x) if isinstance(x, str) and x.startswith('[') else x)
     return df
 
 
@@ -203,9 +192,28 @@ def baseline_small_dataset(df):
     return df
 
 
+def driver_dictionary(df):
+    # Load the full drivers dataset
+    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    drivers_df = pd.read_csv(os.path.join(root_dir,"raw_data","kaggle", "drivers.csv"))
+
+    # Filter to keep only the drivers present in df
+    unique_driver_ids = df['driverId'].unique()
+    filtered_df = drivers_df[drivers_df['driverId'].isin(unique_driver_ids)]
+
+    # Sort for consistency
+    filtered_df = filtered_df.sort_values(by="driverId").reset_index(drop=True)
+
+    # Create a dictionary with new sequential IDs
+    driver_dict = {row.driverId: (new_id+1, row.driverRef) for new_id, row in enumerate(filtered_df.itertuples(index=False))}
+
+    return driver_dict
+
+
 def baseline_data_prep():
-    df = kaggle_to_df()
-    df = change_driveId(df)
+    df = get_data()
+    dict_drivers = driver_dictionary(df)
+    df = change_driver_ids(df, dict_drivers)
     df = identify_rivals(df)
     df = def_undercut_tentative(df)
     df = def_undercut_success(df)
@@ -214,8 +222,9 @@ def baseline_data_prep():
 
 
 def normal_data_prep():
-    df = kaggle_to_df()
-    df = change_driveId(df)
+    df = get_data()
+    dict_drivers = driver_dictionary(df)
+    df = change_driver_ids(df, dict_drivers)
     df = identify_rivals(df)
     df = def_undercut_tentative(df)
     df= def_undercut_success(df)
@@ -224,11 +233,12 @@ def normal_data_prep():
 
 
 if __name__ == '__main__':
-    kaggle_to_df()
-    change_driveId()
+    get_data()
+    change_driver_ids()
     identify_rivals()
     def_undercut_tentative()
     def_undercut_success()
     baseline_small_dataset()
     baseline_data_prep()
     normal_data_prep()
+    driver_dictionary()
