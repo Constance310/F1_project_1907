@@ -1,6 +1,6 @@
 from data_preparation import baseline_data_prep, normal_data_prep
 from data_cleaning import light_cleaning, normal_cleaning
-from f1_project.params import *
+from f1_project.f1_packages.params import *
 
 
 def generation_dataframe(MODEL_VERSION):
