@@ -4,48 +4,7 @@ import numpy as np
 import os
 import ast
 from sklearn.preprocessing import LabelEncoder
-
-
-def get_data():
-    """Getting the data from kaggle and turning it to dataframe with interesting columns"""
-
-    # Downloading datasets
-    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    pit_df = pd.read_csv(os.path.join(root_dir,"raw_data","kaggle", "pit_stops.csv"))
-    lap_times_df = pd.read_csv(os.path.join(root_dir,"raw_data", "kaggle", "lap_times.csv"))
-    races_df = pd.read_csv(os.path.join(root_dir,"raw_data", "kaggle", "races.csv"))
-
-    # Rearanging pit dataset and renaming
-    pit_df = pit_df[["raceId", "driverId", "stop", "lap", "time", "milliseconds"]].copy()
-    pit_df.rename(columns={"stop": "cumul_stop"}, inplace=True)
-    pit_df.rename(columns={"milliseconds": "pit_duration"}, inplace=True)
-
-    # Rearanging races dataset
-    races_df = races_df[["raceId", "name", "date"]]
-
-    # Rearanging lap times dataset and renaming
-    lap_times_df = lap_times_df[["raceId", "driverId", "lap", "position", "milliseconds"]]
-    lap_times_df.rename(columns={"milliseconds": "lap_time"}, inplace=True)
-
-    # Merging lap_times with races to get the dates and name of each race
-    lap_times_df2 = pd.merge(lap_times_df, races_df, on="raceId")
-
-    # Creating a cumul time column to have the commulative time of each pilot after each lap
-    lap_times_df2["cumul_time"] = lap_times_df2.groupby(["raceId", "driverId"])["lap_time"].cumsum()
-
-    # Merging lap_times with pit datasets
-    df = pd.merge(lap_times_df2, pit_df, how="left", on=["raceId", "driverId", "lap"])
-
-
-    # Removing data prior to 2010
-    df["date"] = pd.to_datetime(df["date"])
-    df2 = df[df["date"].dt.year >= 2010]
-
-    # Sort the values
-    df3 = df2.sort_values(by=["raceId", "lap", "cumul_time"]).copy()
-    df3 = df3.reset_index(drop=True)
-
-    return df3
+from f1_project.f1_packages.params import *
 
 
 def change_driver_ids(df, dict_drivers):
@@ -96,7 +55,7 @@ def identify_rivals(df):
 
 def def_undercut_tentative(df):
     # Créer un dictionnaire des pit stops (raceId, driverId, lap) → pit_duration
-    pit_info = df[df['pit_duration'].notna()].set_index(['raceId', 'driverId', 'lap'])['pit_duration'].to_dict()
+    pit_info = df[(df['pit_duration'].notna()) & (df['pit_duration'] != 0)].set_index(['raceId', 'driverId', 'lap'])['pit_duration'].to_dict()
 
     def check_undercut_tentative(row):
         if pd.isna(row['pit_duration']):  # Vérifier si le pilote a fait un pit stop
@@ -186,6 +145,7 @@ def def_undercut_success(df):
 
     return df  # Retourner le DataFrame modifié
 
+
 def y_encoding(df):
     # Convert to boolean first to handle both strings and actual booleans
     df['undercut_success_binary'] = df['undercut_success'].astype(str).map({'True': 1, 'False': 0})
@@ -198,13 +158,15 @@ def y_encoding(df):
 
     return df
 
+
 def baseline_small_dataset(df):
-    # For our baseline model we keep the 1,500 rows in which there is an undercut tentative
+    """For our baseline model we keep the 1,500 rows in which there is an undercut tentative"""
     df = df[df["undercut_tentative"] == True]
     return df
 
 
 def driver_dictionary(df):
+    """Create a dictionary with all the old driver_ids with the new ones and the corresponding drivers code"""
     # Load the full drivers dataset
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     drivers_df = pd.read_csv(os.path.join(root_dir, "raw_data", "kaggle", "drivers.csv"))
@@ -228,31 +190,84 @@ def driver_dictionary(df):
     return driver_dict
 
 
-def baseline_data_prep():
-    df = get_data()
+def top_X_rivals_columns(df : pd.DataFrame):
+    """Gives us the top 5 drivers of each driver for each GP"""
+    # Extraire les rivaux et exploser la liste
+    df_rivals = df[['driverId', 'rivals']].copy()
+    df_exploded = df_rivals.explode('rivals')
+
+    # Compter les occurrences de chaque rival
+    rival_counts = df_exploded.groupby(['driverId', 'rivals']).size().reset_index(name='count')
+
+    # Trier et garder les X rivaux les plus fréquents
+    top_X_rivals = rival_counts.sort_values(['driverId', 'count'], ascending=[True, False])
+    top_X_rivals = top_X_rivals.groupby('driverId').head(TOP_RIVALS)
+
+    # Transformer en liste pour chaque driver
+    top_X_rivals_list = top_X_rivals.groupby('driverId')['rivals'].apply(list).reset_index()
+    top_X_rivals_list.rename(columns={'rivals': 'top_rivals'}, inplace=True)
+
+    # Merge avec le DataFrame original
+    df = df.merge(top_X_rivals_list, on='driverId', how='left')
+
+    # Remplacer NaN par des listes vides (évite les erreurs d'itération)
+    df['top_rivals'] = df['top_rivals'].apply(lambda x: x if isinstance(x, list) else [])
+
+    # Créer les 5 colonnes pour les rivaux du top 5
+    for i in range(TOP_RIVALS):
+        col_name = f'top_rival_{i+1}'
+        df[col_name] = df.apply(lambda row: int(row['top_rivals'][i] in row['rivals']) if i < len(row['top_rivals']) else 0, axis=1)
+
+    return df
+
+
+def add_pit_column(df):
+    """Gives us the average xth lap at a grand prix where theres a pit"""
+    # Créer les colonnes pit1, pit2, etc. pour chaque pit stop
+    for i in range(1, NUMBER_OF_STOPS + 1):
+        # Sélectionner les pit stops pour le pit numéro i
+        df_pit = df[['name', 'lap']][df.cumul_stop == i]
+
+        # Calculer le tour médian du pit pour chaque circuit
+        pit_median = df_pit.groupby('name')['lap'].median().reset_index(name=f'pit{i}')
+
+        # Arrondir la valeur de la colonne pit{i}
+        pit_median[f'pit{i}'] = pit_median[f'pit{i}'].round().astype(int)
+
+        # Fusionner cette information avec le DataFrame principal
+        df = df.merge(pit_median, on='name', how='left')
+
+    return df
+
+
+###################### PACKAGING ALL THE FUNCTIONS ##############################
+
+def baseline_data_prep(df):
     dict_drivers = driver_dictionary(df)
     df = change_driver_ids(df, dict_drivers)
     df = identify_rivals(df)
     df = def_undercut_tentative(df)
     df = def_undercut_success(df)
+    df = y_encoding(df)
+    df = top_X_rivals_columns(df)
+    df = add_pit_column(df)
     df = baseline_small_dataset(df)
     return df
 
 
-def normal_data_prep():
-    df = get_data()
+def normal_data_prep(df):
     dict_drivers = driver_dictionary(df)
     df = change_driver_ids(df, dict_drivers)
     df = identify_rivals(df)
     df = def_undercut_tentative(df)
-    df= def_undercut_success(df)
-    df = y_encoding()
-    # TO BE MODIFIED
+    df = def_undercut_success(df)
+    df = y_encoding(df)
+    df = top_X_rivals_columns(df)
+    df = add_pit_column(df)
     return df
 
 
 if __name__ == '__main__':
-    get_data()
     change_driver_ids()
     identify_rivals()
     def_undercut_tentative()
@@ -262,3 +277,5 @@ if __name__ == '__main__':
     baseline_data_prep()
     normal_data_prep()
     driver_dictionary()
+    top_X_rivals_columns()
+    add_pit_column()

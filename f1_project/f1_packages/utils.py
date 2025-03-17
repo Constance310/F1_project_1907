@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+from f1_project.f1_packages.data_cleaning import *
 from f1_project.f1_packages.data_preparation import *
 
 def save_to_csv(df: pd.DataFrame, file_name):
