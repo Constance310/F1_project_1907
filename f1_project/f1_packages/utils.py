@@ -3,7 +3,8 @@ import os
 from f1_project.f1_packages.data_preparation import *
 
 def save_to_csv(df: pd.DataFrame, file_name):
-    df.to_csv(f"raw_data/{file_name}.csv")
+    url = '../../raw_data/'
+    df.to_csv(f"{url}{file_name}.csv")
 
 
 #def load_kaggle(): ## TO BE FINISHED
