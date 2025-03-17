@@ -82,18 +82,17 @@ def create_sklearn_preprocessor() -> ColumnTransformer:
 
     return final_preprocessor
 
-def preprocess_features(X_train: pd.DataFrame, X_test: pd.DataFrame = None) -> tuple:
+def preprocess_features(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple:
     """
     Preprocess features for both training and testing data.
     Fits the preprocessor on training data and transforms both training and testing data.
 
     Args:
         X_train: Training features DataFrame
-        X_test: Testing features DataFrame (optional)
+        X_test: Testing features DataFrame
 
     Returns:
-        If X_test is provided: tuple (X_train_processed, X_test_processed)
-        If X_test is None: X_train_processed
+        tuple: (X_train_processed, X_test_processed)
     """
     print("\nPreprocessing features...")
 
@@ -102,8 +101,7 @@ def preprocess_features(X_train: pd.DataFrame, X_test: pd.DataFrame = None) -> t
 
     # Apply custom lap encoding to both train and test
     X_train_cleaned = custom_lap_encoding(X_train_cleaned)
-    if X_test_cleaned is not None:
-        X_test_cleaned = custom_lap_encoding(X_test_cleaned)
+    X_test_cleaned = custom_lap_encoding(X_test_cleaned)
 
     # Create and fit preprocessor on training data
     preprocessor = create_sklearn_preprocessor()
@@ -119,11 +117,9 @@ def preprocess_features(X_train: pd.DataFrame, X_test: pd.DataFrame = None) -> t
 
     # Transform both train and test data
     X_train_processed = preprocessor.transform(X_train_cleaned)
-    print("✅ X_train processed, with shape", X_train_processed.shape)
+    X_test_processed = preprocessor.transform(X_test_cleaned)
 
-    if X_test_cleaned is not None:
-        X_test_processed = preprocessor.transform(X_test_cleaned)
-        print("✅ X_test processed, with shape", X_test_processed.shape)
-        return pd.DataFrame(X_train_processed), pd.DataFrame(X_test_processed)
+    print("✅ X_train processed, with shape", X_train_processed.shape)
+    print("✅ X_test processed, with shape", X_test_processed.shape)
 
     return pd.DataFrame(X_train_processed), pd.DataFrame(X_test_processed)
