@@ -1,47 +1,130 @@
 from f1_project.f1_packages.data_preparation import *
 from f1_project.f1_packages.data_cleaning import *
 from f1_project.f1_packages.params import *
-from sklearn.model_selection import *
+from f1_project.f1_packages.preprocessor import *
 from f1_project.f1_packages.utils import *
+from f1_project.f1_packages.model import initialize_model, evaluate, pred, train_model
 import pandas as pd
+from sklearn.model_selection import train_test_split
+import numpy as np
+from typing import Any as Model
 
 
 def generation_dataframe(MODEL_VERSION="light"):
+    """
+    Generate the final dataframe based on the specified model version.
+
+    Args:
+        MODEL_VERSION (str): Version of the model to use ('light' or 'normal')
+
+    Returns:
+        pd.DataFrame: Processed and prepared dataframe ready for modeling
+    """
+    print(f"\n🔨 Generating dataframe with {MODEL_VERSION} version...")
+
     if MODEL_VERSION == "light":
-        # Data preparation
-        df = baseline_data_prep()
-        # Data cleaning
-        df_clean = light_cleaning(df)
+        print("\n1️⃣ Performing light cleaning...")
+        # Data cleaning with basic steps
+        df_clean = light_cleaning()
+
+        print("\n2️⃣ Preparing data with baseline features...")
+        # Data preparation with baseline features
+        df_good = baseline_data_prep(df_clean)
+
         # df_baseline.to_csv("raw_data/df_baseline2.csv", index=False)
 
     if MODEL_VERSION == "normal":
-        # Data preparation
-        df = normal_data_prep()
-        # Data cleaning
-        df_clean = normal_cleaning(df)
-        # df_baseline.to_csv("raw_data/df_baseline2.csv", index=False)
+        print("\n1️⃣ Performing normal cleaning...")
+        # Data cleaning with additional steps
+        df_clean = normal_cleaning()
 
-    # save_to_csv(df_clean, "df_clean2")
-    return df_clean
+        print("\n2️⃣ Preparing data with advanced features...")
+        # Data preparation with additional features
+        df_good = normal_data_prep(df_clean)
+
+    print(f"\n✅ DataFrame generated successfully! Shape: {df_good.shape}")
+    return df_good
 
 
 def test_train_split(df):
-    """Creating the X_train and X_test and downloading it into csv files"""
-    # Separate X and y
+    """
+    Split the data into training and testing sets.
+
+    Args:
+        df (pd.DataFrame): Input dataframe to split
+
+    Returns:
+        tuple: (X_train, X_test, y_train, y_test) - Training and testing splits
+    """
+    print("\n📊 Splitting data into train and test sets...")
+
+    # Separate features (X) and target (y)
+    print("1️⃣ Separating features and target variables...")
     X = df.drop(columns=["undercut_tentative", "undercut_success"])
     y = df["undercut_success"]
+    print(f"Features shape: {X.shape}")
+    print(f"Target shape: {y.shape}")
 
-    # Split data into train, test and validation sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
-    
+    # Split data into train and test sets
+    print("\n2️⃣ Performing train-test split...")
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y,
+        test_size=0.2,  # 20% for testing
+        random_state=42  # For reproducibility
+    )
+
     # Saving the datasets
     save_to_csv(pd.DataFrame(X_train), "X_train")
     save_to_csv(pd.DataFrame(X_test), "X_test")
-    
-    # Returing X and y
+    print(f"Training set shape: {X_train.shape}")
+    print(f"Testing set shape: {X_test.shape}")
+
+    # Returning X and y
     return X_train, X_test, y_train, y_test
 
 
+def processing(X_train, X_test):
+    """
+    Process the features using the preprocessing pipeline.
+
+    Args:
+        X_train (pd.DataFrame): Training features
+        X_test (pd.DataFrame): Testing features
+
+    Returns:
+        tuple: (X_train_processed, X_test_processed) - Processed features
+    """
+    print("\n⚙️ Processing features...")
+    X_train_processed, X_test_processed = preprocess_features(X_train, X_test)
+    return X_train_processed, X_test_processed
+
+
 if __name__ == '__main__':
-    generation_dataframe(MODEL_VERSION)
-    test_train_split(generation_dataframe(MODEL_VERSION))
+    print("\n🚀 Starting main pipeline...")
+
+    # Generate the dataframe
+    print("\nStep 1: Generating DataFrame")
+    df = generation_dataframe(MODEL_VERSION)
+
+    # Split into train and test sets
+    print("\nStep 2: Splitting Data")
+    X_train, X_test, y_train, y_test = test_train_split(df)
+
+    # Process the features
+    print("\nStep 3: Processing Features")
+    X_train_processed, X_test_processed = processing(X_train, X_test)
+
+    # Initialize and train model
+    print("\nStep 4: Training Model")
+    model = initialize_model('randomforest')  # You can change the model type here
+    trained_model = train_model(model, X_train_processed, y_train)
+
+    # Evaluate model
+    print("\nStep 5: Evaluating Model")
+    evaluate(trained_model, X_test_processed, y_test)
+
+    # Make predictions
+    print("\nStep 6: Making Predictions")
+    y_pred, y_proba = pred(trained_model, X_test_processed, y_test)
+
+    print("\n✨ Pipeline completed successfully!")
