@@ -11,9 +11,9 @@ def get_data():
 
     # Downloading datasets
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    pit_df = pd.read_csv(os.path.join(root_dir,"data","raw_data", "pit_stops.csv"))
-    lap_times_df = pd.read_csv(os.path.join(root_dir,"data", "raw_data", "lap_times.csv"))
-    races_df = pd.read_csv(os.path.join(root_dir,"data", "raw_data", "races.csv"))
+    pit_df = pd.read_csv(os.path.join(root_dir,"raw_data","kaggle", "pit_stops.csv"))
+    lap_times_df = pd.read_csv(os.path.join(root_dir,"raw_data", "kaggle", "lap_times.csv"))
+    races_df = pd.read_csv(os.path.join(root_dir,"raw_data", "kaggle", "races.csv"))
 
     # Rearanging pit dataset and renaming
     pit_df = pit_df[["raceId", "driverId", "stop", "lap", "time", "milliseconds"]].copy()
@@ -207,7 +207,13 @@ def baseline_small_dataset(df):
 def driver_dictionary(df):
     # Load the full drivers dataset
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    drivers_df = pd.read_csv(os.path.join(root_dir,"raw_data","kaggle", "drivers.csv"))
+    drivers_df = pd.read_csv(os.path.join(root_dir, "raw_data", "kaggle", "drivers.csv"))
+
+    # Creating a column with the 3 letter code and the true number of the driver
+    drivers_df["name_code"] = drivers_df["code"].astype(str) + "_" + drivers_df["number"].astype(str)
+
+    # Replace Verstappen's number 1 with 33 as it's the same person (be humble Max LOL)
+    drivers_df["name_code"] = drivers_df["name_code"].replace('VER_1', 'VER_33')
 
     # Filter to keep only the drivers present in df
     unique_driver_ids = df['driverId'].unique()
@@ -217,7 +223,7 @@ def driver_dictionary(df):
     filtered_df = filtered_df.sort_values(by="driverId").reset_index(drop=True)
 
     # Create a dictionary with new sequential IDs
-    driver_dict = {row.driverId: (new_id+1, row.driverRef) for new_id, row in enumerate(filtered_df.itertuples(index=False))}
+    driver_dict = {row.driverId: (new_id + 1, row.name_code) for new_id, row in enumerate(filtered_df.itertuples(index=False))}
 
     return driver_dict
 
