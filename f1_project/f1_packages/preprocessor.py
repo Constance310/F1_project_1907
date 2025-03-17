@@ -94,32 +94,44 @@ def preprocess_features(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple:
     Returns:
         tuple: (X_train_processed, X_test_processed)
     """
-    print("\nPreprocessing features...")
+    print("\n🚀 Starting preprocessing pipeline...")
+    print(f"Initial shapes - X_train: {X_train.shape}, X_test: {X_test.shape}")
 
     # Drop unnecessary columns
+    print("\n1️⃣ Dropping unnecessary columns...")
     X_train_cleaned, X_test_cleaned = drop_unnecessary_columns(X_train, X_test)
+    print(f"Shapes after dropping columns - X_train: {X_train_cleaned.shape}, X_test: {X_test_cleaned.shape}")
+    print(f"Columns dropped: {set(X_train.columns) - set(X_train_cleaned.columns)}")
 
     # Apply custom lap encoding to both train and test
+    print("\n2️⃣ Applying custom lap encoding...")
     X_train_cleaned = custom_lap_encoding(X_train_cleaned)
     X_test_cleaned = custom_lap_encoding(X_test_cleaned)
+    print("✅ Lap encoding completed")
+    print(f"Unique lap encoded values in train: {X_train_cleaned['lap_encoded'].nunique()}")
 
     # Create and fit preprocessor on training data
+    print("\n3️⃣ Creating and fitting preprocessor...")
     preprocessor = create_sklearn_preprocessor()
 
     # Check if saved preprocessor exists
     if os.path.exists(scaler_path) and os.path.exists(encoder_path):
-        print("✅ Loading existing preprocessor...")
+        print("✅ Loading existing preprocessor from:", scaler_path)
         preprocessor = joblib.load(scaler_path)
     else:
         print("✅ Fitting new preprocessor...")
         preprocessor.fit(X_train_cleaned)
         joblib.dump(preprocessor, scaler_path)
+        print("✅ Preprocessor saved to:", scaler_path)
 
     # Transform both train and test data
+    print("\n4️⃣ Transforming data...")
     X_train_processed = preprocessor.transform(X_train_cleaned)
     X_test_processed = preprocessor.transform(X_test_cleaned)
 
-    print("✅ X_train processed, with shape", X_train_processed.shape)
-    print("✅ X_test processed, with shape", X_test_processed.shape)
+    print("\n✨ Final results:")
+    print(f"X_train processed shape: {X_train_processed.shape}")
+    print(f"X_test processed shape: {X_test_processed.shape}")
+    print("✅ Preprocessing completed successfully!")
 
     return pd.DataFrame(X_train_processed), pd.DataFrame(X_test_processed)
