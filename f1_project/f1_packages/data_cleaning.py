@@ -2,6 +2,7 @@ import kagglehub
 import pandas as pd
 import numpy as np
 import os
+from f1_project.f1_packages.params import *
 
 
 def light_remove_columns(df):
@@ -15,11 +16,11 @@ def remove_outliers(df):
     """Removing outliers in the data"""
 
     # Removing the laps with a time greater that 180,000 ms
-    df1 = df[df["lap_time"] <= 180_000]
+    df1 = df[df["lap_time"] <= LAP_DURATION_MAX]
     # Removing the laps where the car stops for the 5th time or more
-    df2 = df1[df1["cumul_stop"] <= 4]
+    df2 = df1[df1["cumul_stop"] <= NUMBER_PIT_MAX]
     # Removing the laps where the pit stop is longer than 50,000 ms
-    df3 = df2[df2["pit_duration"] <= 55_000]
+    df3 = df2[df2["pit_duration"] <= PIT_DURATION_MAX]
     return df3
 
 
