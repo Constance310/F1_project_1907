@@ -169,7 +169,7 @@ def driver_dictionary(df):
     """Create a dictionary with all the old driver_ids with the new ones and the corresponding drivers code"""
     # Load the full drivers dataset
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    drivers_df = pd.read_csv(os.path.join(root_dir, "raw_data", "kaggle", "drivers.csv"))
+    drivers_df = pd.read_csv(os.path.join(root_dir, "data","raw_data", "drivers.csv"))
 
     # Creating a column with the 3 letter code and the true number of the driver
     drivers_df["name_code"] = drivers_df["code"].astype(str) + "_" + drivers_df["number"].astype(str)

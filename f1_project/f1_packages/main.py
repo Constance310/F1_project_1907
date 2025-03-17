@@ -4,6 +4,7 @@ from f1_project.f1_packages.params import *
 from f1_project.f1_packages.preprocessor import *
 from f1_project.f1_packages.utils import *
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 
 def generation_dataframe(MODEL_VERSION="light"):
@@ -44,13 +45,20 @@ def test_train_split(df):
     return X_train, X_test, y_train, y_test
 
 
-# def preprocessing(X_train, X_test):
-#     Xx
+def test_train_split(df):
+    """Creating the X_train and X_test and downloading it into csv files"""
+    # Separate X and y
+    X = df.drop(columns=["undercut_tentative", "undercut_success"])
+    y = df["undercut_success"]
+    # Split data into train, test and validation sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+    # Returing X and y
+    return X_train, X_test, y_train, y_test
 
-#     return X_train_preprocessed, X_test_preprocessed
-
-
-
-
-# if __name__ == '__main__':
-    # preprocessing(generation_dataframe(MODEL_VERSION))
+def processing(X_train, X_test):
+    X_train_processed, X_test_processed = preprocess_features(X_train, X_test)
+    return X_train_processed, X_test_processed
+if __name__ == '__main__':
+    df = generation_dataframe(MODEL_VERSION)
+    X_train, X_test, y_train, y_test = test_train_split(df)
+    processing(X_train, X_test)
