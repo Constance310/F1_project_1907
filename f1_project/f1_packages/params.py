@@ -7,4 +7,4 @@ LAP_DURATION_MAX = os.environ.get('LAP_DURATION_MAX')
 PIT_DURATION_MAX = os.environ.get('PIT_DURATION_MAX')
 SCALER_PATH = "models/robust_scaler.pkl"
 ENCODER_PATH = "models/one_hot_encoder.pkl"
-MODEL_VERSION = os.environ.get('MODEL_VERSION')
+MODEL_VERSION=["light", "normal"]

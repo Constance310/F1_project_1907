@@ -208,7 +208,7 @@ def driver_dictionary(df):
     filtered_df = drivers_df[drivers_df['driverId'].isin(unique_driver_ids)]
 
     # Sort for consistency
-    filtered_df = filtered_df.sort_values(by="driverId", ascending=True).reset_index(drop=True)
+    filtered_df = filtered_df.sort_values(by="driverId").reset_index(drop=True)
 
     # Create a dictionary with new sequential IDs
     driver_dict = {row.driverId: (new_id + 1, row.name_code) for new_id, row in enumerate(filtered_df.itertuples(index=False))}
