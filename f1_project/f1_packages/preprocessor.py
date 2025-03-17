@@ -8,9 +8,6 @@ from dotenv import load_dotenv
 import os
 from params import SCALER_PATH, ENCODER_PATH
 
-load_dotenv()
-SCALER_PATH = os.getenv("SCALER_PATH", "models/robust_scaler.pkl")
-ENCODER_PATH = os.getenv("ENCODER_PATH", "models/one_hot_encoder.pkl")
 scaler_path = SCALER_PATH
 encoder_path = ENCODER_PATH
 

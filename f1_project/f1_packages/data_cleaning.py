@@ -19,7 +19,7 @@ def remove_outliers(df):
     # Removing the laps where the car stops for the 5th time or more
     df2 = df1[df1["cumul_stop"] <= 4]
     # Removing the laps where the pit stop is longer than 50,000 ms
-    df3 = df2[df2["pit_duration"] <= 50_000]
+    df3 = df2[df2["pit_duration"] <= 55_000]
     return df3
 
 

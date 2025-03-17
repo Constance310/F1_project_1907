@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 import ast
+from sklearn.preprocessing import LabelEncoder
 
 
 def get_data():
@@ -185,6 +186,17 @@ def def_undercut_success(df):
 
     return df  # Retourner le DataFrame modifié
 
+def y_encoding(df):
+    # Convert to boolean first to handle both strings and actual booleans
+    df['undercut_success_binary'] = df['undercut_success'].astype(str).map({'True': 1, 'False': 0})
+
+    # Drop original column
+    df.drop(columns="undercut_success", inplace=True)
+
+    # Rename the binary column back to original name
+    df.rename(columns={'undercut_success_binary': 'undercut_success'}, inplace=True)
+
+    return df
 
 def baseline_small_dataset(df):
     # For our baseline model we keep the 1,500 rows in which there is an undercut tentative
@@ -195,7 +207,13 @@ def baseline_small_dataset(df):
 def driver_dictionary(df):
     # Load the full drivers dataset
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    drivers_df = pd.read_csv(os.path.join(root_dir,"raw_data","kaggle", "drivers.csv"))
+    drivers_df = pd.read_csv(os.path.join(root_dir, "raw_data", "kaggle", "drivers.csv"))
+
+    # Creating a column with the 3 letter code and the true number of the driver
+    drivers_df["name_code"] = drivers_df["code"].astype(str) + "_" + drivers_df["number"].astype(str)
+
+    # Replace Verstappen's number 1 with 33 as it's the same person (be humble Max LOL)
+    drivers_df["name_code"] = drivers_df["name_code"].replace('VER_1', 'VER_33')
 
     # Filter to keep only the drivers present in df
     unique_driver_ids = df['driverId'].unique()
@@ -205,7 +223,7 @@ def driver_dictionary(df):
     filtered_df = filtered_df.sort_values(by="driverId").reset_index(drop=True)
 
     # Create a dictionary with new sequential IDs
-    driver_dict = {row.driverId: (new_id+1, row.driverRef) for new_id, row in enumerate(filtered_df.itertuples(index=False))}
+    driver_dict = {row.driverId: (new_id + 1, row.name_code) for new_id, row in enumerate(filtered_df.itertuples(index=False))}
 
     return driver_dict
 
@@ -242,3 +260,4 @@ if __name__ == '__main__':
     baseline_data_prep()
     normal_data_prep()
     driver_dictionary()
+    y_encoding()
