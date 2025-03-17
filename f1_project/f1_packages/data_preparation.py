@@ -246,6 +246,7 @@ def normal_data_prep():
     df = identify_rivals(df)
     df = def_undercut_tentative(df)
     df= def_undercut_success(df)
+    df = y_encoding()
     # TO BE MODIFIED
     return df
 
@@ -256,8 +257,8 @@ if __name__ == '__main__':
     identify_rivals()
     def_undercut_tentative()
     def_undercut_success()
+    y_encoding()
     baseline_small_dataset()
     baseline_data_prep()
     normal_data_prep()
     driver_dictionary()
-    y_encoding()
