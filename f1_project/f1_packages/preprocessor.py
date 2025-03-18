@@ -122,6 +122,7 @@ def preprocess_features(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple:
         print("✅ Fitting new preprocessor...")
         preprocessor.fit(X_train_cleaned)
         joblib.dump(preprocessor, scaler_path)
+        joblib.dump(preprocessor, encoder_path)
         print("✅ Preprocessor saved to:", scaler_path)
 
     # Transform both train and test data
