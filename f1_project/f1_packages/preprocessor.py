@@ -6,7 +6,7 @@ import pandas as pd
 import joblib
 from dotenv import load_dotenv
 import os
-from params import SCALER_PATH, ENCODER_PATH
+from f1_project.f1_packages.params import SCALER_PATH, ENCODER_PATH
 scaler_path = SCALER_PATH
 encoder_path = ENCODER_PATH
 
@@ -121,6 +121,7 @@ def preprocess_features(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple:
     else:
         print("✅ Fitting new preprocessor...")
         preprocessor.fit(X_train_cleaned)
+        print(f"Chemin utilisé : {os.path.abspath(scaler_path)}")
         joblib.dump(preprocessor, scaler_path)
         joblib.dump(preprocessor, encoder_path)
         print("✅ Preprocessor saved to:", scaler_path)
@@ -136,3 +137,7 @@ def preprocess_features(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple:
     print("✅ Preprocessing completed successfully!")
 
     return pd.DataFrame(X_train_processed), pd.DataFrame(X_test_processed)
+
+
+if __name__ == '__main__':
+    preprocess_features()
