@@ -5,6 +5,8 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from xgboost import XGBRegressor
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def initialize_model(model, n_estimators=100, learning_rate=0.1, max_depth=4):
     """
@@ -33,20 +35,23 @@ def train_model(model, X, y) :
     model = model.fit(X, y)
     return model
 
-def evaluate(model, X, y):
-
-    accuracy = model.score(X, y)
-    print(f"L'accuracy : {accuracy}")
-    print(f"Matrice confusion : {confusion_matrix(X ,y)}")
-
-
-
 def pred (model, X, y) :
     """
     evaluate the choosen model
     """
-    y_pred = model.predict(X, y)
-    y_proba = model.predict_proba(X, y)
-    print(f"Report : {classification_report}")
+    y_pred = model.predict(X)
+    #y_proba = model.predict_proba(X, y)
+    report = classification_report(y, y_pred)
+    print(f"Report : \n{report}")
+    cm = confusion_matrix(y, y_pred)
+    # Utiliser seaborn pour l'affichage
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=["Class 0", "Class 1"], yticklabels=["Class 0", "Class 1"])
 
-    return y_pred, y_proba
+    # Ajouter des titres et des labels
+    plt.title('Matrice de Confusion')
+    plt.xlabel('Prédictions')
+    plt.ylabel('Véritables valeurs')
+    plt.show()
+
+    return y_pred

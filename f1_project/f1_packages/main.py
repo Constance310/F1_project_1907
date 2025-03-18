@@ -3,14 +3,14 @@ from f1_project.f1_packages.data_cleaning import *
 from f1_project.f1_packages.params import *
 from f1_project.f1_packages.preprocessor import *
 from f1_project.f1_packages.utils import *
-from f1_project.f1_packages.model import initialize_model, evaluate, pred, train_model
+from f1_project.f1_packages.model import *
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import numpy as np
 from typing import Any as Model
 
 
-def generation_dataframe(MODEL_VERSION="light"):
+def generation_dataframe(model_type):
     """
     Generate the final dataframe based on the specified model version.
 
@@ -20,9 +20,9 @@ def generation_dataframe(MODEL_VERSION="light"):
     Returns:
         pd.DataFrame: Processed and prepared dataframe ready for modeling
     """
-    print(f"\n🔨 Generating dataframe with {MODEL_VERSION} version...")
+    print(f"\n🔨 Generating dataframe with {model_type} version...")
 
-    if MODEL_VERSION == "light":
+    if model_type == "light":
         print("\n1️⃣ Performing light cleaning...")
         # Data cleaning with basic steps
         df_clean = light_cleaning()
@@ -33,7 +33,7 @@ def generation_dataframe(MODEL_VERSION="light"):
 
         # df_baseline.to_csv("raw_data/df_baseline2.csv", index=False)
 
-    if MODEL_VERSION == "normal":
+    if model_type == "normal":
         print("\n1️⃣ Performing normal cleaning...")
         # Data cleaning with additional steps
         df_clean = normal_cleaning()
@@ -43,6 +43,7 @@ def generation_dataframe(MODEL_VERSION="light"):
         df_good = normal_data_prep(df_clean)
 
     print(f"\n✅ DataFrame generated successfully! Shape: {df_good.shape}")
+    save_to_csv(df_good, "df_good")
     return df_good
 
 
@@ -121,12 +122,8 @@ if __name__ == '__main__':
     model = initialize_model('randomforest')  # You can change the model type here
     trained_model = train_model(model, X_train_processed, y_train)
 
-    # Evaluate model
-    print("\nStep 5: Evaluating Model")
-    evaluate(trained_model, X_test_processed, y_test)
-
     # Make predictions
-    print("\nStep 6: Making Predictions")
+    print("\nStep 5: Making Predictions")
     y_pred, y_proba = pred(trained_model, X_test_processed, y_test)
 
     print("\n✨ Pipeline completed successfully!")

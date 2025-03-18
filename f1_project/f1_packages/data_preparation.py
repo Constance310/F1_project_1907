@@ -169,7 +169,7 @@ def driver_dictionary(df):
     """Create a dictionary with all the old driver_ids with the new ones and the corresponding drivers code"""
     # Load the full drivers dataset
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    drivers_df = pd.read_csv(os.path.join(root_dir, "data","raw_data", "drivers.csv"))
+    drivers_df = pd.read_csv(os.path.join(root_dir, "raw_data", "kaggle", "drivers.csv"))
 
     # Creating a column with the 3 letter code and the true number of the driver
     drivers_df["name_code"] = drivers_df["code"].astype(str) + "_" + drivers_df["number"].astype(str)
@@ -243,39 +243,72 @@ def add_pit_column(df):
 ###################### PACKAGING ALL THE FUNCTIONS ##############################
 
 def baseline_data_prep(df):
+    """Prepare baseline dataset by processing driver IDs, rivals, pit stops, and undercut attempts."""
+    print("\n🚀 Starting baseline data preparation...")
+
+    print("\n1️⃣ Creating driver dictionary...")
     dict_drivers = driver_dictionary(df)
+
+    print("\n2️⃣ Mapping driver IDs...")
     df = change_driver_ids(df, dict_drivers)
+
+    print("\n3️⃣ Identifying rivals...")
     df = identify_rivals(df)
+
+    print("\n4️⃣ Defining undercut tentative strategy...")
     df = def_undercut_tentative(df)
+
+    print("\n5️⃣ Defining undercut success cases...")
     df = def_undercut_success(df)
+
+    print("\n6️⃣ Encoding target variable...")
     df = y_encoding(df)
+
+    print("\n7️⃣ Selecting top rivals...")
     df = top_X_rivals_columns(df)
+
+    print("\n8️⃣ Adding pit stop column...")
     df = add_pit_column(df)
+
+    print("\n9️⃣ Reducing dataset size for baseline model...")
     df = baseline_small_dataset(df)
+
+    print("\n✨ Baseline data preparation completed!")
+    print(f"Final dataset shape: {df.shape}")
     return df
 
 
 def normal_data_prep(df):
+    """Prepare baseline dataset by processing driver IDs, rivals, pit stops, and undercut attempts."""
+    print("\n🚀 Starting baseline data preparation...")
+
+    print("\n1️⃣ Creating driver dictionary...")
     dict_drivers = driver_dictionary(df)
+
+    print("\n2️⃣ Mapping driver IDs...")
     df = change_driver_ids(df, dict_drivers)
+
+    print("\n3️⃣ Identifying rivals...")
     df = identify_rivals(df)
+
+    print("\n4️⃣ Defining undercut tentative strategy...")
     df = def_undercut_tentative(df)
+
+    print("\n5️⃣ Defining undercut success cases...")
     df = def_undercut_success(df)
+
+    print("\n6️⃣ Encoding target variable...")
     df = y_encoding(df)
+
+    print("\n7️⃣ Selecting top rivals...")
     df = top_X_rivals_columns(df)
+
+    print("\n8️⃣ Adding pit stop column...")
     df = add_pit_column(df)
+
+    print(f"Final dataset shape: {df.shape}")
     return df
 
 
 if __name__ == '__main__':
-    change_driver_ids()
-    identify_rivals()
-    def_undercut_tentative()
-    def_undercut_success()
-    y_encoding()
-    baseline_small_dataset()
     baseline_data_prep()
-    normal_data_prep()
-    driver_dictionary()
-    top_X_rivals_columns()
-    add_pit_column()

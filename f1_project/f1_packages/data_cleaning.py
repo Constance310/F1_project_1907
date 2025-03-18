@@ -154,8 +154,8 @@ def normal_cleaning():
 if __name__ == '__main__':
     print("\n🚀 Starting data cleaning process...")
     get_data()
-    remove_outliers()
     fill_na()
+    remove_outliers()
     rename_GP()
     light_cleaning()
     normal_cleaning()
