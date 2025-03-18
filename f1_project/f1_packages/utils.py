@@ -4,9 +4,19 @@ from f1_project.f1_packages.data_cleaning import *
 from f1_project.f1_packages.data_preparation import *
 
 def save_to_csv(df: pd.DataFrame, file_name):
+    """Save a df multiple times with the same name by adding a different version"""
     url = '../../raw_data/'
-    df.to_csv(f"{url}{file_name}.csv")
+    i = 0
+    full_path = f"{url}{file_name}_v{i}.csv"
 
+    # continuer d'incrémenter tant qu'un dossier avec le même nom existe
+    while os.path.exists(full_path):
+        i += 1
+        full_path = f"{url}{file_name}_v{i}.csv"
+
+    # save the file under the new name
+    df.to_csv(full_path, index=False)
+    print(f"✅ File saved as: {full_path}")
 
 #def load_kaggle(): ## TO BE FINISHED
 def get_original_driver(new_driver_number):

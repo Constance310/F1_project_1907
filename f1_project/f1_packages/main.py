@@ -124,6 +124,6 @@ if __name__ == '__main__':
 
     # Make predictions
     print("\nStep 5: Making Predictions")
-    y_pred, y_proba = pred(trained_model, X_test_processed, y_test)
+    y_pred = pred(trained_model, X_test_processed, y_test)
 
     print("\n✨ Pipeline completed successfully!")
