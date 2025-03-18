@@ -11,9 +11,9 @@ def get_data():
 
     # Downloading datasets
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    pit_df = pd.read_csv(os.path.join(root_dir,"data","raw_data", "pit_stops.csv"))
-    lap_times_df = pd.read_csv(os.path.join(root_dir,"data","raw_data", "lap_times.csv"))
-    races_df = pd.read_csv(os.path.join(root_dir,"data","raw_data", "races.csv"))
+    pit_df = pd.read_csv(os.path.join(root_dir,"raw_data","kaggle", "pit_stops.csv"))
+    lap_times_df = pd.read_csv(os.path.join(root_dir,"raw_data","kaggle", "lap_times.csv"))
+    races_df = pd.read_csv(os.path.join(root_dir,"raw_data","kaggle", "races.csv"))
     print(f"✅ Loaded initial datasets - Shapes:")
     print(f"   • Pit stops: {pit_df.shape}")
     print(f"   • Lap times: {lap_times_df.shape}")

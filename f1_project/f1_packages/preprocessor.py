@@ -123,6 +123,7 @@ def preprocess_features(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple:
         preprocessor.fit(X_train_cleaned)
         print(f"Chemin utilisé : {os.path.abspath(scaler_path)}")
         joblib.dump(preprocessor, scaler_path)
+        joblib.dump(preprocessor, encoder_path)
         print("✅ Preprocessor saved to:", scaler_path)
 
     # Transform both train and test data
