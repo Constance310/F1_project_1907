@@ -3,7 +3,6 @@ import os
 import time
 import pickle
 
-from colorama import Fore, Style
 from tensorflow import keras
 
 # Dans params
@@ -49,3 +48,35 @@ def save_model(model: keras.Model = None) -> None:
     print("✅ Model saved locally")
 
     return None
+
+def load_model(stage="Production") -> keras.Model:
+    """
+    Return a saved model:
+    - locally (latest one in alphabetical order)
+
+    Return None (but do not Raise) if no model is found
+
+    """
+
+    if MODEL_TARGET == "local":
+        print(f"\nLoad latest model from local registry...")
+
+        # Get the latest model version name by the timestamp on disk
+        local_model_directory = os.path.join(LOCAL_REGISTRY_PATH, "models")
+        local_model_paths = glob.glob(f"{local_model_directory}/*")
+
+        if not local_model_paths:
+            return None
+
+        most_recent_model_path_on_disk = sorted(local_model_paths)[-1]
+
+        print(f"\nLoad latest model from disk...")
+
+        latest_model = keras.models.load_model(most_recent_model_path_on_disk)
+
+        print("✅ Model loaded from local disk")
+
+        return latest_model
+
+    else:
+        return None
