@@ -4,7 +4,7 @@ from f1_project.f1_packages.data_cleaning import *
 from f1_project.f1_packages.data_preparation import *
 
 def save_to_csv(df: pd.DataFrame, file_name):
-    url = '../../raw_data'
+    url = '../../raw_data/'
     df.to_csv(f"{url}{file_name}.csv")
 
 

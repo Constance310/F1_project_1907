@@ -137,3 +137,7 @@ def preprocess_features(X_train: pd.DataFrame, X_test: pd.DataFrame) -> tuple:
     print("✅ Preprocessing completed successfully!")
 
     return pd.DataFrame(X_train_processed), pd.DataFrame(X_test_processed)
+
+
+if __name__ == '__main__':
+    preprocess_features()
