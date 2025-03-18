@@ -58,7 +58,9 @@ def test_train_split(df):
         tuple: (X_train, X_test, y_train, y_test) - Training and testing splits
     """
     print("\n📊 Splitting data into train and test sets...")
-
+    for i in range(1 , NUMBER_OF_STOPS + 1) :
+        #df[f"pit{i}"] = df[f'pit{i}'][df[f'pit{i}'].isna()] = 0
+        df[f'pit{i}'].fillna(0, inplace=True)
     # Separate features (X) and target (y)
     print("1️⃣ Separating features and target variables...")
     X = df.drop(columns=["undercut_tentative", "undercut_success"])
@@ -122,6 +124,6 @@ if __name__ == '__main__':
 
     # Make predictions
     print("\nStep 5: Making Predictions")
-    y_pred, y_proba = pred(trained_model, X_test_processed, y_test)
+    y_pred = pred(trained_model, X_test_processed, y_test)
 
     print("\n✨ Pipeline completed successfully!")
