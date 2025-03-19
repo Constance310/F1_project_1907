@@ -110,7 +110,7 @@ if __name__ == '__main__':
     df = generation_dataframe(MODEL_VERSION)
 
     # Adding fastf1 dataset
-    if DATASET == "fastf1":
+    if DATASET_CHOICE == "fastf1":
         df = add_data_fastf1(df)
     else:
         pass
