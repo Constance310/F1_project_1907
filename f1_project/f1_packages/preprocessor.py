@@ -202,4 +202,4 @@ def preprocess_features(dataset, X_train: pd.DataFrame, X_test: pd.DataFrame) ->
 
 
 if __name__ == '__main__':
-    preprocess_features(DATASET)
+    preprocess_features(DATASET_CHOICE)
