@@ -109,6 +109,9 @@ if __name__ == '__main__':
     print("\nStep 1: Generating DataFrame")
     df = generation_dataframe(MODEL_VERSION)
 
+    # Merge with F1_fast data
+    df = add_data_fastf1(df)
+
     # Split into train and test sets
     print("\nStep 2: Splitting Data")
     X_train, X_test, y_train, y_test = test_train_split(df)
