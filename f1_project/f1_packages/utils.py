@@ -73,7 +73,7 @@ def add_data_fastf1(df3):
     df["Name_numb"] = df["Driver"].astype(str) + "_" + df["DriverNumber"].astype(str)
     df['LapStartDate'] = df['LapStartDate'].str.slice(0, 10)
     df['Name_numb'] = df['Name_numb'].replace('VER_1', 'VER_33')
-    df.rename(columns={'LapStartDate': 'date', 'LapNumber': 'lap', 'Name_numb': 'driverId'}, inplace=True)
+    df.rename(columns={'LapStartDate': 'date', 'LapNumber': 'lap', 'Name_numb': 'driverNum'}, inplace=True)
     df.drop(columns=['Driver', 'DriverNumber'], inplace=True)
     df['Time'] = df['Time'].str.slice(7, 15)
     df = df.dropna(subset=['date'])
@@ -119,18 +119,18 @@ def add_data_fastf1(df3):
     print('🌀 Dataframes fast_f1 and weather merged')
 
     # Rearranging merge dataframe
-    fast_f1 = fast_f1[['date', 'driverId', 'lap', 'Compound', 'TyreLife', 'Rainfall', 'TrackTemp']]
+    fast_f1 = fast_f1[['date', 'driverNum', 'lap', 'Compound', 'TyreLife', 'Rainfall', 'TrackTemp']]
     fast_f1['lap'] = fast_f1['lap'].astype(int)
     print('⚙️ Dataframe fast_f1 rearranged')
 
     # Merge datasets
-    df_V1 = pd.merge(df3, fast_f1, how='left', on=['lap', 'date', 'driverId'])
+    df_V1 = pd.merge(df3, fast_f1, how='left', on=['lap', 'date', 'driverNum'])
     df_complete = df_V1[df_V1['date'].isin(fast_f1['date'])]
     # df_complete = df_V1[df_V1['date'] > '2018-01-01']
     print('✅ Dataframes merged')
 
     # Cleaning the dataframe
-    df_complete = df_complete.sort_values(by=['date', 'driverId', 'lap']).reset_index(drop=True)
+    df_complete = df_complete.sort_values(by=['date', 'driverNum', 'lap']).reset_index(drop=True)
     df_complete['Compound'] = df_complete['Compound'].fillna(method='ffill')
     df_complete['TyreLife'] = df_complete['TyreLife'].fillna(method='ffill') + 1
     df_complete['TrackTemp'] = df_complete['TrackTemp'].fillna(method='ffill')

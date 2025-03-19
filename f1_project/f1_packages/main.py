@@ -86,7 +86,7 @@ def test_train_split(df):
     return X_train, X_test, y_train, y_test
 
 
-def processing(X_train, X_test):
+def processing(dataset, X_train, X_test):
     """
     Process the features using the preprocessing pipeline.
 
@@ -98,7 +98,7 @@ def processing(X_train, X_test):
         tuple: (X_train_processed, X_test_processed) - Processed features
     """
     print("\n⚙️ Processing features...")
-    X_train_processed, X_test_processed = preprocess_features(X_train, X_test)
+    X_train_processed, X_test_processed = preprocess_features(dataset, X_train, X_test)
     return X_train_processed, X_test_processed
 
 
@@ -109,13 +109,19 @@ if __name__ == '__main__':
     print("\nStep 1: Generating DataFrame")
     df = generation_dataframe(MODEL_VERSION)
 
+    # Adding fastf1 dataset
+    if DATASET == "fastf1":
+        df = add_data_fastf1(df)
+    else:
+        pass
+
     # Split into train and test sets
     print("\nStep 2: Splitting Data")
     X_train, X_test, y_train, y_test = test_train_split(df)
 
     # Process the features
     print("\nStep 3: Processing Features")
-    X_train_processed, X_test_processed = processing(X_train, X_test)
+    X_train_processed, X_test_processed = processing(DATASET, X_train, X_test)
 
     # Initialize and train model
     print("\nStep 4: Training Model")
