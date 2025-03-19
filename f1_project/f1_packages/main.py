@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     # Process the features
     print("\nStep 3: Processing Features")
-    X_train_processed, X_test_processed = processing(DATASET, X_train, X_test)
+    X_train_processed, X_test_processed = processing(DATASET_CHOICE, X_train, X_test)
 
     # Initialize and train model
     print("\nStep 4: Training Model")
