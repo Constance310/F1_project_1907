@@ -116,17 +116,24 @@ def add_data_fastf1(df3):
         by="date",
         direction='backward'
     )
-    print('✅ Dataframes fast_f1 and weather merged')
+    print('🌀 Dataframes fast_f1 and weather merged')
 
     # Rearranging merge dataframe
     fast_f1 = fast_f1[['date', 'driverId', 'lap', 'Compound', 'TyreLife', 'Rainfall', 'TrackTemp']]
     fast_f1['lap'] = fast_f1['lap'].astype(int)
-    print('✅ Dataframe fast_f1 rearranged')
-    print(f"   • Nan: {fast_f1.isna().sum()}")
+    print('⚙️ Dataframe fast_f1 rearranged')
 
     # Merge datasets
     df_V1 = pd.merge(df3, fast_f1, how='left', on=['lap', 'date', 'driverId'])
-    df_complete = df_V1[df_V1['date'] > '2018-01-01']
+    df_complete = df_V1[df_V1['date'].isin(fast_f1['date'])]
+    # df_complete = df_V1[df_V1['date'] > '2018-01-01']
     print('✅ Dataframes merged')
 
+    # Cleaning the dataframe
+    df_complete = df_complete.sort_values(by=['date', 'driverId', 'lap']).reset_index(drop=True)
+    df_complete['Compound'] = df_complete['Compound'].fillna(method='ffill')
+    df_complete['TyreLife'] = df_complete['TyreLife'].fillna(method='ffill') + 1
+    df_complete['TrackTemp'] = df_complete['TrackTemp'].fillna(method='ffill')
+    df_complete['Rainfall'] = df_complete.groupby('lap')['Rainfall'].fillna(method='ffill')
+    print("🏎️ Your dataframe is ready to go")
     return df_complete
