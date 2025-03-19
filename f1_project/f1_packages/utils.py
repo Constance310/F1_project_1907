@@ -51,23 +51,25 @@ def add_data_laps_fastf1():
 
     return df
 
-def add_data_fastf1():
-     """Getting the data from fastf1 for laps and weather and merge it to our dataset"""
+def add_data_fastf1(df3):
+    """Getting the data from fastf1 for laps and weather and merge it to our dataset"""
     # GET DATA
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    df2018 = pd.read_csv(os.path.join(root_dir,"raw_data","fastf1", "fastf1_laps_2018_2021.csv"))
-    df2022 = pd.read_csv(os.path.join(root_dir,"raw_data","fastf1", "fastf1_laps_2022.csv"))
-    df2023 = pd.read_csv(os.path.join(root_dir,"raw_data","fastf1", "fastf1_laps_2023.csv"))
-    df2024 = pd.read_csv(os.path.join(root_dir,"raw_data","fastf1", "fastf1_laps_2024.csv"))
+    df2018 = pd.read_csv(os.path.join(root_dir,"raw_data","fastf1", "fastf1_laps_2018_2021.csv"), usecols=['Driver', 'DriverNumber', 'LapNumber', 'Stint', 'Compound', 'TyreLife', 'FreshTyre', 'LapStartDate', 'Time'])
+    df2022 = pd.read_csv(os.path.join(root_dir,"raw_data","fastf1", "fastf1_laps_2022.csv"), usecols=['Driver', 'DriverNumber', 'LapNumber', 'Stint', 'Compound', 'TyreLife', 'FreshTyre', 'LapStartDate', 'Time'])
+    df2023 = pd.read_csv(os.path.join(root_dir,"raw_data","fastf1", "fastf1_laps_2023.csv"), usecols=['Driver', 'DriverNumber', 'LapNumber', 'Stint', 'Compound', 'TyreLife', 'FreshTyre', 'LapStartDate', 'Time'])
+    df2024 = pd.read_csv(os.path.join(root_dir,"raw_data","fastf1", "fastf1_laps_2024.csv"), usecols=['Driver', 'DriverNumber', 'LapNumber', 'Stint', 'Compound', 'TyreLife', 'FreshTyre', 'LapStartDate', 'Time'])
     df = pd.concat([df2018, df2022, df2023, df2024], axis=0) # On concatène les données
-    weather2018 = pd.read_csv(os.path.join(root_dir,"raw_data","fastf1", "fastf1_weather_2018_2021.csv"))
-    weather2022 = (os.path.join(root_dir,"raw_data","fastf1", "fastf1_weather_2022.csv"))
-    weather2023 = (os.path.join(root_dir,"raw_data","fastf1", "fastf1_weather_2023.csv"))
-    weather2024 = (os.path.join(root_dir,"raw_data","fastf1", "fastf1_weather_2024.csv"))
+    weather2018 = pd.read_csv(os.path.join(root_dir, "raw_data", "fastf1", "fastf1_weather_2018_2021.csv"))
+    weather2022 = pd.read_csv(os.path.join(root_dir, "raw_data", "fastf1", "fastf1_weather_2022.csv"))
+    weather2023 = pd.read_csv(os.path.join(root_dir, "raw_data", "fastf1", "fastf1_weather_2023.csv"))
+    weather2024 = pd.read_csv(os.path.join(root_dir, "raw_data", "fastf1", "fastf1_weather_2024.csv"))
     weather = pd.concat([weather2018, weather2022, weather2023, weather2024], axis=0) # On concatène les données
+    print('✅ Dataframes loaded')
+
 
     # Rearranging dataset df
-    df = df[['Driver', 'DriverNumber', 'LapNumber', 'Stint', 'Compound', 'TyreLife', 'FreshTyre', 'LapStartDate', 'Time']]
+    df = df[['Driver', 'DriverNumber', 'LapNumber', 'Compound', 'TyreLife', 'LapStartDate', 'Time']]
     df["Name_numb"] = df["Driver"].astype(str) + "_" + df["DriverNumber"].astype(str)
     df['LapStartDate'] = df['LapStartDate'].str.slice(0, 10)
     df['Name_numb'] = df['Name_numb'].replace('VER_1', 'VER_33')
@@ -75,10 +77,13 @@ def add_data_fastf1():
     df.drop(columns=['Driver', 'DriverNumber'], inplace=True)
     df['Time'] = df['Time'].str.slice(7, 15)
     df = df.dropna(subset=['date'])
+    df["Compound"] = df["Compound"].fillna(method="bfill")
+    df['TyreLife'] = df['TyreLife'].fillna(0)
 
     # Rearranging dataset weather
     weather.rename(columns={"Unnamed: 0": "Prelev", "Time": "Timestamp"}, inplace=True)
     weather['Timestamp'] = weather['Timestamp'].str.slice(7, 15)
+
 
     # Add date to weather
     dates = df['date'].dropna().unique()
@@ -104,19 +109,24 @@ def add_data_fastf1():
 
     # Merging datasets
     fast_f1 = pd.merge_asof(
-    df,
-    weather,
-    left_on="Time",
-    right_on="Timestamp",
-    by="date",
-    direction='backward'
+        df,
+        weather,
+        left_on="Time",
+        right_on="Timestamp",
+        by="date",
+        direction='backward'
     )
-    print('✅ Dataframes merged')
+    print('✅ Dataframes fast_f1 and weather merged')
 
+    # Rearranging merge dataframe
+    fast_f1 = fast_f1[['date', 'driverId', 'lap', 'Compound', 'TyreLife', 'Rainfall', 'TrackTemp']]
+    fast_f1['lap'] = fast_f1['lap'].astype(int)
+    print('✅ Dataframe fast_f1 rearranged')
+    print(f"   • Nan: {fast_f1.isna().sum()}")
 
     # Merge datasets
-    df = pd.merge(df, fast_f1, how='cross', on=['lap', 'date', 'driverId'])
-
+    df_V1 = pd.merge(df3, fast_f1, how='left', on=['lap', 'date', 'driverId'])
+    df_complete = df_V1[df_V1['date'] > '2018-01-01']
     print('✅ Dataframes merged')
 
-    return df
+    return df_complete
