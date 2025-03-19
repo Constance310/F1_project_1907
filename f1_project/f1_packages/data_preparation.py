@@ -11,7 +11,7 @@ def change_driver_ids(df, dict_drivers):
     """Change the driverIds in the DataFrame to the new sequential IDs."""
 
     # Replace original driverIds with the new ones
-    df['driverId'] = df['driverId'].map(lambda x: dict_drivers[x][0] if x in dict_drivers else x)
+    df['driverId'] = df['driverId'].map(lambda x: dict_drivers[x][1] if x in dict_drivers else x)
 
     return df
 
