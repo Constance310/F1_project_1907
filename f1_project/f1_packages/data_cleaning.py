@@ -146,7 +146,6 @@ def normal_cleaning():
 
     print("\n4️⃣ Standardizing GP names...")
     df = rename_GP(df)
-    # ADD OTHER FUNCTIONS
 
     print("\n✨ Normal cleaning completed!")
     print(f"Final dataset shape: {df.shape}")
