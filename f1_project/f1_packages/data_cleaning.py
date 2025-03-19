@@ -110,6 +110,7 @@ def rename_GP(df):
     print(f"✅ Standardized {initial_unique - final_unique} GP names")
     return df
 
+
 def light_cleaning():
     """Light cleaning of the data"""
     print("\n🧹 Starting light cleaning process...")
@@ -137,11 +138,11 @@ def normal_cleaning():
     print("\n1️⃣ Getting data...")
     df = get_data()
 
-    print("\n2️⃣ Removing outliers...")
-    df = remove_outliers(df)
-
     print("\n3️⃣ Filling missing values...")
     df = fill_na(df)
+
+    print("\n2️⃣ Removing outliers...")
+    df = remove_outliers(df)
 
     print("\n4️⃣ Standardizing GP names...")
     df = rename_GP(df)

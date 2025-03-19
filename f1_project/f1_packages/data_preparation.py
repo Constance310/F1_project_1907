@@ -53,45 +53,33 @@ def identify_rivals(df):
     return df
 
 
-def def_undercut_tentative(df):
+def undercut_tentative(df):
     # Créer un dictionnaire des pit stops (raceId, driverId, lap) → pit_duration
     pit_info = df[(df['pit_duration'].notna()) & (df['pit_duration'] != 0)].set_index(['raceId', 'driverId', 'lap'])['pit_duration'].to_dict()
-
     def check_undercut_tentative(row):
-        if pd.isna(row['pit_duration']):  # Vérifier si le pilote a fait un pit stop
+        if row['pit_duration'] == 0:  # Vérifier si le pilote a fait un pit stop
             return False
-
         race_id, lap, driver_id = row['raceId'], row['lap'], row['driverId']
-
         # Récupérer la ligne du pilote au tour précédent
         previous_lap = df[(df['raceId'] == race_id) & (df['lap'] == lap - 1) & (df['driverId'] == driver_id)]
-
         if previous_lap.empty:  # Si pas de données pour le tour précédent, on sort
             return False
-
         # Récupérer les rivaux du tour précédent sous forme de liste
         previous_rivals = previous_lap.iloc[0]['rivals']
-
         if not previous_rivals:  # Si la liste des rivaux du tour précédent est vide
             return False
-
         # Récupérer les rivaux du lap précédent dans le DataFrame
         previous_lap_rivals = df[(df['raceId'] == race_id) & (df['lap'] == lap - 1) & df['driverId'].isin(previous_rivals)]
-
         if previous_lap_rivals.empty:  # Si aucun rival du tour précédent n'est trouvé
             return False
-
         # Vérifier si un de ces rivaux a pité aux tours suivants (lap+1 ou lap+2)
         for _, rival_row in previous_lap_rivals.iterrows():
             for next_lap in [lap + 1, lap + 2]:
                 if (race_id, rival_row['driverId'], next_lap) in pit_info:
                     return True  # Undercut tenté
-
         return False  # Si aucun rival du tour précédent n'a pité après
-
     # Appliquer la fonction à chaque ligne du DataFrame
     df['undercut_tentative'] = df.apply(check_undercut_tentative, axis=1)
-
     return df  # Retourner le DataFrame modifié
 
 
